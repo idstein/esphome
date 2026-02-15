@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef USE_ARDUINO
-
 #include <cstdint>
 #include <string>
 
@@ -37,5 +35,3 @@ inline int bcd_to_dec(uint8_t bcd) { return ((bcd >> 4) * 10) + (bcd & 0x0F); }
 
 }  // namespace optolink
 }  // namespace esphome
-
-#endif

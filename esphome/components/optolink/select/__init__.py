@@ -1,5 +1,6 @@
 import esphome.codegen as cg
 from esphome.components import select
+from esphome.components.text_sensor import validate_mapping
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_ADDRESS,
@@ -19,19 +20,6 @@ CODEOWNERS = ["@j0ta29"]
 OptolinkSelect = optolink_ns.class_(
     "OptolinkSelect", select.Select, cg.PollingComponent
 )
-
-
-def validate_mapping(value):
-    if not isinstance(value, dict):
-        value = cv.string(value)
-        if "->" not in value:
-            raise cv.Invalid("Mapping must contain '->'")
-        a, b = value.split("->", 1)
-        value = {CONF_FROM: a.strip(), CONF_TO: b.strip()}
-
-    return cv.Schema(
-        {cv.Required(CONF_FROM): cv.string, cv.Required(CONF_TO): cv.string}
-    )(value)
 
 
 CONF_MAP = "map"

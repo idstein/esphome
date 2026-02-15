@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef USE_ARDUINO
-
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "../optolink.h"
 #include "../datapoint_component.h"
@@ -25,5 +23,3 @@ class OptolinkBinarySensor : public DatapointComponent, public esphome::binary_s
 };
 }  // namespace optolink
 }  // namespace esphome
-
-#endif

@@ -1,5 +1,3 @@
-#ifdef USE_ARDUINO
-
 #include "esphome/core/log.h"
 #include "optolink_text_sensor.h"
 #include "../optolink.h"
@@ -50,18 +48,29 @@ void OptolinkTextSensor::update() {
 
 void OptolinkTextSensor::datapoint_value_changed(const std::string &value) {
   switch (type_) {
-    case TEXT_SENSOR_TYPE_RAW:
+    case TEXT_SENSOR_TYPE_RAW: {
       publish_state(value);
       break;
-    default:
+    }
+    case TEXT_SENSOR_TYPE_MAP: {
+      auto pos = mapping_->find(value);
+      if (pos == mapping_->end()) {
+        ESP_LOGE(TAG, "value %s not found in select %s", value.c_str(), get_component_name().c_str());
+      } else {
+        publish_state(pos->second);
+      }
+      break;
+    }
+    default: {
       unfitting_value_type_();
       break;
+    }
   }
 }
 
 void OptolinkTextSensor::datapoint_value_changed(uint8_t *value, size_t length) {
   switch (type_) {
-    case TEXT_SENSOR_TYPE_DAY_SCHEDULE:
+    case TEXT_SENSOR_TYPE_DAY_SCHEDULE: {
       if (length == 8) {
         auto schedule = decode_day_schedule(value);
         rtrim(schedule);
@@ -70,20 +79,26 @@ void OptolinkTextSensor::datapoint_value_changed(uint8_t *value, size_t length) 
         unfitting_value_type_();
       }
       break;
-    case TEXT_SENSOR_TYPE_DATETIME:
-      if (length == 8) {
-        auto datetime = decode_datetime(value, length);
-        publish_state(datetime);
-      } else {
-        unfitting_value_type_();
-      }
+      case TEXT_SENSOR_TYPE_DATETIME:
+        if (length == 8) {
+          auto datetime = decode_datetime(value, length);
+          publish_state(datetime);
+        } else {
+          unfitting_value_type_();
+        }
+        break;
+    }
+    case TEXT_SENSOR_TYPE_MAP: {
+      std::string key(reinterpret_cast<char const *>(value), length);
+      datapoint_value_changed(key);
       break;
+    }
     case TEXT_SENSOR_TYPE_RAW:
     case TEXT_SENSOR_TYPE_DEVICE_INFO:
-    case TEXT_SENSOR_TYPE_STATE_INFO:
-    case TEXT_SENSOR_TYPE_MAP:
+    case TEXT_SENSOR_TYPE_STATE_INFO: {
       unfitting_value_type_();
       break;
+    }
   }
 };
 
@@ -97,13 +112,55 @@ void OptolinkTextSensor::datapoint_value_changed(uint32_t value) {
       std::string software_index = esphome::format_hex_pretty((uint8_t *) bytes + 3, 1);
       publish_state("Device ID: " + geraetekennung + "|Hardware Revision: " + hardware_revision +
                     "|Software Index: " + software_index);
-    } break;
-    default:
+      break;
+    }
+    case TEXT_SENSOR_TYPE_MAP: {
+      std::string key = std::to_string(value);
+      datapoint_value_changed(key);
+      break;
+    }
+    default: {
       publish_state(std::to_string(value));
+    }
+  }
+};
+
+void OptolinkTextSensor::datapoint_value_changed(float value) {
+  switch (type_) {
+    case TEXT_SENSOR_TYPE_MAP: {
+      std::string key = std::to_string(value);
+      datapoint_value_changed(key);
+      break;
+    }
+    default: {
+      publish_state(std::to_string(value));
+    }
+  }
+};
+void OptolinkTextSensor::datapoint_value_changed(uint8_t value) {
+  switch (type_) {
+    case TEXT_SENSOR_TYPE_MAP: {
+      std::string key = std::to_string(value);
+      datapoint_value_changed(key);
+      break;
+    }
+    default: {
+      publish_state(std::to_string(value));
+    }
+  }
+};
+void OptolinkTextSensor::datapoint_value_changed(uint16_t value) {
+  switch (type_) {
+    case TEXT_SENSOR_TYPE_MAP: {
+      std::string key = std::to_string(value);
+      datapoint_value_changed(key);
+      break;
+    }
+    default: {
+      publish_state(std::to_string(value));
+    }
   }
 };
 
 }  // namespace optolink
 }  // namespace esphome
-
-#endif

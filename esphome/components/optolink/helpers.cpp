@@ -1,5 +1,3 @@
-#ifdef USE_ARDUINO
-
 #include "helpers.h"
 #include "esphome/core/log.h"
 #include <cstring>
@@ -180,5 +178,3 @@ std::string decode_datetime(const uint8_t *buffer, size_t length) {
 
 }  // namespace optolink
 }  // namespace esphome
-
-#endif

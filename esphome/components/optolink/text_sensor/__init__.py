@@ -1,12 +1,15 @@
 import esphome.codegen as cg
 from esphome.components import text_sensor
+from esphome.components.text_sensor import validate_mapping
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_ADDRESS,
     CONF_BYTES,
     CONF_DIV_RATIO,
     CONF_ENTITY_ID,
+    CONF_FROM,
     CONF_ID,
+    CONF_TO,
     CONF_TYPE,
 )
 
@@ -38,6 +41,8 @@ OptolinkTextSensor = optolink_ns.class_(
     "OptolinkTextSensor", text_sensor.TextSensor, cg.PollingComponent
 )
 
+CONF_MAP = "map"
+MAP_ID = "mappings"
 CONFIG_SCHEMA = cv.All(
     text_sensor.text_sensor_schema(OptolinkTextSensor)
     .extend(
@@ -48,6 +53,10 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_BYTES): cv.uint8_t,
             cv.Optional(CONF_DAY_OF_WEEK): cv.enum(DAY_OF_WEEK, upper=True),
             cv.Optional(CONF_ENTITY_ID): cv.entity_id,
+            cv.GenerateID(MAP_ID): cv.declare_id(
+                cg.std_ns.class_("map").template(cg.std_string, cg.std_string)
+            ),
+            cv.Optional(CONF_MAP): cv.ensure_list(validate_mapping),
         }
     )
     .extend(cv.COMPONENT_SCHEMA)
@@ -76,3 +85,11 @@ async def to_code(config):
         cg.add(var.set_day_of_week(config[CONF_DAY_OF_WEEK]))
     if CONF_ENTITY_ID in config:
         cg.add(var.set_entity_id(config[CONF_ENTITY_ID]))
+    if CONF_MAP in config:
+        map_type_ = cg.std_ns.class_("map").template(cg.std_string, cg.std_string)
+        map_var = cg.new_Pvariable(
+            config[MAP_ID],
+            map_type_([(item[CONF_FROM], item[CONF_TO]) for item in config[CONF_MAP]]),
+        )
+
+        cg.add(var.set_map(map_var))

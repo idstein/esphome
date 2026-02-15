@@ -1,5 +1,3 @@
-#ifdef USE_ARDUINO
-
 #include "optolink_sensor.h"
 #include "esphome/core/application.h"
 #include "../optolink.h"
@@ -25,7 +23,7 @@ void OptolinkSensor::update() {
       datapoint_read_request_();
       break;
     case SENSOR_TYPE_QUEUE_SIZE:
-      publish_state(optolink_->get_queue_size());
+      // publish_state(optolink_->get_queue_size());
       break;
   }
 }
@@ -58,5 +56,3 @@ void OptolinkSensor::datapoint_value_changed(uint32_t value) {
 
 }  // namespace optolink
 }  // namespace esphome
-
-#endif

@@ -1,5 +1,3 @@
-#ifdef USE_ARDUINO
-
 #include "esphome/core/helpers.h"
 #include "optolink_select.h"
 #include "../optolink.h"
@@ -65,5 +63,3 @@ void OptolinkSelect::datapoint_value_changed(float value) {
 
 }  // namespace optolink
 }  // namespace esphome
-
-#endif

@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef USE_ARDUINO
-
 #include "esphome/components/switch/switch.h"
 #include "../optolink.h"
 #include "../datapoint_component.h"
@@ -27,5 +25,3 @@ class OptolinkSwitch : public DatapointComponent, public esphome::switch_::Switc
 
 }  // namespace optolink
 }  // namespace esphome
-
-#endif

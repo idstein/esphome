@@ -1,5 +1,3 @@
-#ifdef USE_ARDUINO
-
 #include "optolink_number.h"
 #include "../optolink.h"
 
@@ -44,5 +42,3 @@ void OptolinkNumber::datapoint_value_changed(uint32_t value) {
 
 }  // namespace optolink
 }  // namespace esphome
-
-#endif

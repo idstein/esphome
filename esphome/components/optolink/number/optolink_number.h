@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef USE_ARDUINO
-
 #include "esphome/components/number/number.h"
 #include "../optolink.h"
 #include "../datapoint_component.h"
@@ -27,5 +25,3 @@ class OptolinkNumber : public DatapointComponent, public esphome::number::Number
 
 }  // namespace optolink
 }  // namespace esphome
-
-#endif

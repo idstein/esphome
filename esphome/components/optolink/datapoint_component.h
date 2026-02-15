@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef USE_ARDUINO
-
 #include "esphome/core/log.h"
 #include "esphome/core/string_ref.h"
 #include "esphome/core/component.h"
@@ -54,35 +52,35 @@ class DatapointComponent : public esphome::PollingComponent {
 
  private:
   const size_t max_retries_until_reset_ = 10;
-  IDatapoint *datapoint_ = nullptr;
+  VitoWiFi::Datapoint *datapoint_ = nullptr;
   size_t read_retries_ = 0;
   int16_t div_ratio_ = 0;
   size_t bytes_;
   uint32_t address_;
   bool writeable_;
   bool is_dp_value_writing_outstanding_ = false;
-  DPValue dp_value_outstanding_;
+  VitoWiFi::VariantValue dp_value_outstanding_;
 
-  void datapoint_write_request_(DPValue dp_value);
+  void datapoint_write_request_(VitoWiFi::VariantValue dp_value);
 };
 
 // NOLINTBEGIN
-class conv2_100_F : public DPType {
+class ScheduleConverter : public VitoWiFi::Converter {
  public:
-  void encode(uint8_t *out, DPValue in);
-  DPValue decode(const uint8_t *in);
-  virtual const size_t getLength() const { return 2; }
+  VitoWiFi::VariantValue decode(const uint8_t *data, uint8_t len) const override;
+  void encode(uint8_t *buf, uint8_t len, const VitoWiFi::VariantValue &val) const override;
 };
 
-class conv4_1000_F : public DPType {
+class DivConvert : public VitoWiFi::Converter {
  public:
-  void encode(uint8_t *out, DPValue in);
-  DPValue decode(const uint8_t *in);
-  virtual const size_t getLength() const { return 4; }
+  DivConvert(const float divisor) : VitoWiFi::Converter(), divisor_{divisor} {}
+  VitoWiFi::VariantValue decode(const uint8_t *data, uint8_t len) const override;
+  void encode(uint8_t *buf, uint8_t len, const VitoWiFi::VariantValue &val) const override;
+
+ protected:
+  float divisor_;
 };
 // NOLINTEND
 
 }  // namespace optolink
 }  // namespace esphome
-
-#endif

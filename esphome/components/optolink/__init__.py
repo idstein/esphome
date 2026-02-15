@@ -1,5 +1,6 @@
 from esphome import core, pins
 import esphome.codegen as cg
+from esphome.components import uart
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_ADDRESS,
@@ -109,7 +110,7 @@ def check_dow_for_types(types_dow_needed):
     return validator_
 
 
-OptolinkComponent = optolink_ns.class_("Optolink", cg.Component)
+OptolinkComponent = optolink_ns.class_("Optolink", cg.Component, uart.UARTDevice)
 SENSOR_BASE_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_OPTOLINK_ID): cv.use_id(OptolinkComponent),
@@ -139,15 +140,7 @@ CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(OptolinkComponent),
-            cv.Required(CONF_PROTOCOL): cv.one_of("P300", "KW"),
-            cv.Optional(CONF_RX_PIN): cv.All(
-                cv.only_on_esp32,
-                pins.internal_gpio_input_pin_number,
-            ),
-            cv.Optional(CONF_TX_PIN): cv.All(
-                cv.only_on_esp32,
-                pins.internal_gpio_input_pin_number,
-            ),
+            cv.Required(CONF_PROTOCOL): cv.one_of("VS2", "VS1", "GWG"),
             cv.Optional(CONF_COMMUNICATION_SUSPENSION, default="20s"): cv.All(
                 cv.positive_time_period_milliseconds,
                 cv.Range(min=core.TimePeriod(seconds=0)),
@@ -160,29 +153,34 @@ CONFIG_SCHEMA = cv.All(
             ),
             cv.Optional(CONF_LOGGER, default=False): cv.boolean,
         }
-    ).extend(cv.COMPONENT_SCHEMA),
-    cv.only_with_arduino,
+    ).extend(uart.UART_DEVICE_SCHEMA),
     cv.only_on(["esp32", "esp8266"]),
-    required_on_esp32(CONF_RX_PIN),
-    required_on_esp32(CONF_TX_PIN),
 )
 
 
 async def to_code(config):
-    cg.add_library("VitoWiFi", "1.1.2")
-
-    cg.add_define(
-        "USE_OPTOLINK_VITOWIFI_PROTOCOL",
-        cg.RawExpression(f"Optolink{config[CONF_PROTOCOL]}"),
+    cg.add_library(
+        "VitoWiFi",
+        "3.0.1",
+        repository="https://github.com/idstein/VitoWiFi.git#feature/pure-esp-idf",
     )
 
+    cg.add_global(optolink_ns.using)
+    cg.add_define(
+        "USE_OPTOLINK_VITOWIFI_PROTOCOL",
+        cg.RawExpression(f"VitoWiFi::{config[CONF_PROTOCOL]}"),
+    )
+    if config[CONF_PROTOCOL] == "VS2":
+        cg.add_define("USE_VS2_PROTOCOL", 1)
+    elif config[CONF_PROTOCOL] == "VS1":
+        cg.add_define("USE_VS1_PROTOCOL", 1)
+    elif config[CONF_PROTOCOL] == "GWG":
+        cg.add_define("USE_GWG_PROTOCOL", 1)
+
     var = cg.new_Pvariable(config[CONF_ID])
-    cg.add(var.set_logger_enabled(config[CONF_LOGGER]))
+    # cg.add(var.set_logger_enabled(config[CONF_LOGGER]))
     cg.add(var.set_communication_suspension(config[CONF_COMMUNICATION_SUSPENSION]))
     cg.add(var.set_max_response_delay(config[CONF_MAX_RESPONSE_DELAY]))
 
-    if CORE.is_esp32:
-        cg.add(var.set_rx_pin(config[CONF_RX_PIN]))
-        cg.add(var.set_tx_pin(config[CONF_TX_PIN]))
-
     await cg.register_component(var, config)
+    await uart.register_uart_device(var, config)

@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef USE_ARDUINO
-
 #include "esphome/components/select/select.h"
 #include "../optolink.h"
 #include "../datapoint_component.h"
@@ -34,5 +32,3 @@ class OptolinkSelect : public DatapointComponent, public esphome::select::Select
 
 }  // namespace optolink
 }  // namespace esphome
-
-#endif
